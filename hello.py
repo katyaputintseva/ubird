@@ -1,1 +1,1 @@
-print "hello"
+print "How does it work?"
