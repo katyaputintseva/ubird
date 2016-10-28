@@ -1,1 +1,1 @@
-print "hello beautiful world"
+print "How does it work?"
