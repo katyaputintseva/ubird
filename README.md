@@ -1,7 +1,8 @@
 # ubird
 
 Hello, 
-this is Ubird
+this is Ubird, or uBird. 
+'''
 
            _ _.-''''''--._
          .` `.  ...------.\
@@ -20,4 +21,4 @@ this is Ubird
          `--..      `'-. \ \
               `..     '   \ \
  
-
+'''
