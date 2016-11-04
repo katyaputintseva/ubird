@@ -1,3 +1,0 @@
-# ubird
-
-Here is Egor
