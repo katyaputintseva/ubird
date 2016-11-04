@@ -1,1 +1,0 @@
-print "How does it work?"
