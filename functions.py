@@ -8,9 +8,8 @@ from scipy.stats import gaussian_kde
 # Functions for plotting. The first is to actually plot, the second is to make the plot readable.
 def density_plot(x, y):
     ''' x = observed, y = predicted '''
-    mask = (~np.isnan(x)) & (~np.isnan(y))
-    x = x[mask]
-    y = y[mask]
+    x = x[(~np.isnan(x)) & (~np.isnan(y))]
+    y = y[(~np.isnan(x)) & (~np.isnan(y))]
 
     # Calculate the point density
     xy = np.vstack([x, y])
