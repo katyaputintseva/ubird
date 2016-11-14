@@ -1,25 +1,28 @@
-import matplotlib
-matplotlib.use('Agg')
-from classes import *
-from variables import *
-import pandas as pd
 import tensorflow as tf
 import numpy as np
+from classes import Data, TFNet
 from matplotlib import pyplot as plt
+import pandas as pd
+from functions import density_plot
+from functions import format_plot
 
-print('Folder name for this run is %s' % output_folder)
-print('# learning rate = %s' % learning_rate)
-print('# number of iterations = %s' % max_epochs)
-print('# batch size = %s' % batch_size)
-print('# reshuffling frequency = %s' % reshuffling_frequency)
+output_folder = 'output/'
+cost_stats_file = output_folder + 'cost_stats.txt'
+temp_model_ckpt_file = output_folder + 'model.ckpt'
+input_file = '../data/amino_acid_genotypes_to_brightness_short.tsv'
+batch_size = 10
+net_structure = {'layer1': (1, 'tf.tanh'),
+                 'layer2': (3, 'tf.tanh'),
+                 'layer3': (1, 'tf.tanh')}
 
-# SESSION
+optimizer_method = 'tf.train.AdagradOptimizer'
+learning_rate = 0.1
+max_epochs = 1000
+reshuffling_frequency = 10
 
-# 1) Setting the data parameters. Building up the neural network.
 data = Data(input_file, batch_size)
-net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size, cost_stats_file)
+net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size)
 
-# 2) Running the session.
 with tf.Session() as sess:
     # Creating the file with cost statistics, writing initial parameters.
     cost_stats = open(net.cost_stats_file, 'w+')
@@ -67,15 +70,11 @@ with tf.Session() as sess:
             ax = plt.subplot(111)
             density_plot(data.to_plot_observed, to_plot_predicted)
             format_plot(ax, e, costs)
-            plt.savefig(temp_fig_file)
+            plt.savefig(figure_name)
             plt.close('all')
 
             # Saving ckpt file and sending it and figure file to s3://landscapes-tensorflow.
             net.saver.save(sess, temp_model_ckpt_file)
-            with open(temp_model_ckpt_file, 'rb') as ckpt:
-                s3.Bucket('landscapes-tensorflow').put_object(Key=figure_name + '.ckpt', Body=ckpt)
-            with open(temp_fig_file, 'rb') as figure_file:
-                s3.Bucket('landscapes-tensorflow').put_object(Key=figure_name + '.png', Body=figure_file)
 
             # Saving layer1 inputs and layer3 outputs and sending those to s3://landscapes-tensorflow.
             layer1_inputs = np.zeros(data.batch_number * batch_size)
@@ -94,16 +93,12 @@ with tf.Session() as sess:
 
             neuronal_values_filename = output_folder + 'neuronal_values_iteration_%s.csv' % e
             neuronal_values.to_csv(neuronal_values_filename, index=False)
-            with open(neuronal_values_filename, 'rb') as f:
-                s3.Bucket('landscapes-tensorflow').put_object(Key=neuronal_values_filename, Body=f)
 
         # Reshuffling the data with the specified reshuffling frequency.
         if e % reshuffling_frequency == 0:
 
             # Saving parameters before reshuffling
             cost_stats.close()
-            with open(cost_stats_file, 'rb') as cost_stats:
-                s3.Bucket('landscapes-tensorflow').put_object(Key=cost_stats_file, Body=cost_stats)
             cost_stats = open(cost_stats_file, 'a')
 
             weights = sess.run(
@@ -117,16 +112,9 @@ with tf.Session() as sess:
             mutations_weights["weight"] = weights[0].reshape(len(data.unique_mutations))
             mutations_weights_filename = output_folder + 'unique_mutations_scores_iteration_%s.csv' % e
             mutations_weights.to_csv(mutations_weights_filename, index=False)
-            with open(mutations_weights_filename, 'rb') as mutations_weights:
-                s3.Bucket('landscapes-tensorflow').put_object(Key=mutations_weights_filename,
-                                                              Body=mutations_weights)
 
             if e != 0:
                 # reshuffling data
                 data.reshuffle()
 
     cost_stats.close()
-
-    # sending cost_stats file to s3://landscapes-tensorflow
-    with open(cost_stats_file, 'rb') as cost_stats:
-        s3.Bucket('landscapes-tensorflow').put_object(Key=cost_stats_file, Body=cost_stats)

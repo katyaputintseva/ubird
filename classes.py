@@ -18,6 +18,7 @@ class Data():
         unique_mutations = set(':'.join(data.aaMutations).split(':'))
         unique_mutations.remove('')
         unique_mutations = sorted(list(unique_mutations))
+        self.data = data
         self.unique_mutations = unique_mutations
         self.batch_size = batch_size
         self.input_file = input_file
@@ -29,15 +30,8 @@ class Data():
         self.nn_brightness = tf.placeholder(tf.float32, shape=[self.batch_size, 1, 1])
 
     def reshuffle(self):
-        data = pd.read_table(self.input_file)
-        data.aaMutations = data.aaMutations.fillna('')
-        unique_mutations = set(':'.join(data.aaMutations).split(':'))
-        unique_mutations.remove('')
-        unique_mutations = sorted(list(unique_mutations))
-        self.unique_mutations = unique_mutations
-
-        self.nn_genotypes_values, self.nn_brightness_values = format_data(data, unique_mutations)
-        self.batches = get_batches(self.nn_genotypes_values, self.nn_brightness_values, self.batch_size, unique_mutations)
+        self.nn_genotypes_values, self.nn_brightness_values = format_data(self.data, self.unique_mutations)
+        self.batches = get_batches(self.nn_genotypes_values, self.nn_brightness_values, self.batch_size, self.unique_mutations)
         self.to_plot_observed = self.nn_brightness_values[0:(self.batch_number * self.batch_size)]
 
 
