@@ -1,4 +1,4 @@
-input_file	~/amino_acid_genotypes_to_brightness_short.tsv
+input_file	~/amino_acid_genotypes_to_brightness.tsv
 output_folder	14_11_16_test/
 learning_rate	0.1
 batch_size	628
