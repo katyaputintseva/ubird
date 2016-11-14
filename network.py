@@ -23,8 +23,6 @@ net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size, co
 # 2) Running the session.
 with tf.Session() as sess:
     # Creating the file with cost statistics, writing initial parameters.
-    if not os.path.exists(net.cost_stats_file):
-        os.makedirs(net.cost_stats_file)
     cost_stats = open(net.cost_stats_file, 'w+')
     cost_stats.write('# net')
     for i in net_structure:
