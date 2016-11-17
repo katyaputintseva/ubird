@@ -43,7 +43,7 @@ def format_plot(ax, iteration_number, costs):
     return ax
 
 
-# Function for shaping the data. It performes reshuffling of the data,
+# Function for shaping the data. It performs reshuffling of the data,
 # brightness normalization, and extracts genotype and brightness to separate matrices.
 def format_data(data, unique_mutations):
     # shuffling rows in the data df

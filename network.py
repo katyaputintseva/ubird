@@ -6,7 +6,6 @@ import pandas as pd
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
-import os
 
 print('Folder name for this run is %s' % output_folder)
 print('# learning rate = %s' % learning_rate)
@@ -61,7 +60,7 @@ with tf.Session() as sess:
 
             costs /= data.batch_number
 
-            # Plotting observed versus predicted brightness. Saving the plot locally to a temp_fig  _file.
+            # Plotting observed versus predicted brightness. Saving the plot locally to a temp_fig_file.
             print('Iteration %s: cost=%.7f' % (e, costs))
             cost_stats.write('%s,%s\n' % (e, costs))
             fig = plt.figure(figsize=(6, 6))

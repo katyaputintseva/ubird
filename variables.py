@@ -87,3 +87,4 @@ cost_stats_file = output_folder + 'cost_stats.txt'
 temp_fig_file = output_folder + 'temp_fig.png'
 temp_model_ckpt_file = output_folder + 'model.ckpt'
 
+
