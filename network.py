@@ -1,9 +1,15 @@
 import matplotlib
 matplotlib.use('Agg')
+<<<<<<< HEAD
+=======
+from classes import *
+from variables import *
+>>>>>>> c0858cd42805f7f0939e0aa314de9977b09dce2a
 import pandas as pd
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
+<<<<<<< HEAD
 from scipy.stats import gaussian_kde
 import argparse
 import boto3
@@ -93,11 +99,16 @@ cost_stats_file = output_folder + 'cost_stats.txt'
 temp_fig_file = output_folder + 'temp_fig.png'
 temp_model_ckpt_file = output_folder + 'model.ckpt'
 
+=======
+
+print('Folder name for this run is %s' % output_folder)
+>>>>>>> c0858cd42805f7f0939e0aa314de9977b09dce2a
 print('# learning rate = %s' % learning_rate)
 print('# number of iterations = %s' % max_epochs)
 print('# batch size = %s' % batch_size)
 print('# reshuffling frequency = %s' % reshuffling_frequency)
 
+<<<<<<< HEAD
 
 # Functions for plotting. The first is to actually plot, the second is to make the plot readable.
 def density_plot(x, y):
@@ -261,11 +272,17 @@ class TFNet(object):
             print ('%s neurons in layer_' % (self.neurons['layer' + str(i + 1)]) + str(i + 1) + '\n')
 
 
+=======
+>>>>>>> c0858cd42805f7f0939e0aa314de9977b09dce2a
 # SESSION
 
 # 1) Setting the data parameters. Building up the neural network.
 data = Data(input_file, batch_size)
+<<<<<<< HEAD
 net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size)
+=======
+net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size, cost_stats_file)
+>>>>>>> c0858cd42805f7f0939e0aa314de9977b09dce2a
 
 # 2) Running the session.
 with tf.Session() as sess:
@@ -308,7 +325,11 @@ with tf.Session() as sess:
 
             costs /= data.batch_number
 
+<<<<<<< HEAD
             # Plotting observed versus predicted brightness. Saving the plot locally to a temp_fig  _file.
+=======
+            # Plotting observed versus predicted brightness. Saving the plot locally to a temp_fig_file.
+>>>>>>> c0858cd42805f7f0939e0aa314de9977b09dce2a
             print('Iteration %s: cost=%.7f' % (e, costs))
             cost_stats.write('%s,%s\n' % (e, costs))
             fig = plt.figure(figsize=(6, 6))
