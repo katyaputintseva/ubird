@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f698b9ea-22d0-4d1c-ae60-e240e3855220" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.ipynb_checkpoints/Data_vis-checkpoint.ipynb" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Data_vis-checkpoint.ipynb" />
     </list>
     <ignored path="ubird.iws" />
     <ignored path=".idea/workspace.xml" />
