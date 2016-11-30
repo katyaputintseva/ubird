@@ -3,20 +3,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import sparse 
 
-from sklearn.model_selection import KFold
-from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
-from sklearn.tree import DecisionTreeRegressor,DecisionTreeClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC,NuSVC,SVR,NuSVR
-from sklearn.model_selection import GridSearchCV
-from sklearn import metrics
-from sklearn import neighbors
-from sklearn.decomposition import TruncatedSVD
+from sklearn.ensemble import RandomForestClassifier
+
+from time import time
 
 def MachineLearningPipeline(filename):
+    t0 = time()
     # reading the raw date
+    print "Reading the data..."
+    t1 = time()
     df = pd.read_csv(filename, sep = '\t', engine = 'python')
 
     # Extracting brightness values and storing them separately in file
@@ -32,7 +27,10 @@ def MachineLearningPipeline(filename):
     counts = df.uniqueBarcodes.values #number of unique barcodes for each mutant
 
     del df
-
+    print "Time taken: %.2f s\n"%(time()-t1)
+    
+    print "Creating the data matrix..."
+    t1 = time()
     # create a list of mutants and lookup table of all unique mutations
     mutants = mutants_series.tolist()
     mutants[0] = [] #mutant 0 is the base case and has no mutations 
@@ -63,63 +61,56 @@ def MachineLearningPipeline(filename):
     
     X = categ_mat_lil.tocsr()
     del categ_mat_lil
+    print "Time taken: %.2f s\n"%(time()-t1)
 
 
-    # Retrieve all the mutants with single mutations 
-    # and create the look up table for this single mutations
-    single_mutations = {}
-    single_mut_idx = []
-
-    for i in xrange(X.shape[0]):
-        if X.getrow(i).indices.shape[0] == 1:
-            index = X.getrow(i).indices[0]
-            mutation = col_names[index]
-            #print mutation,i
-            if mutation not in single_mutations:
-                single_mutations[mutation] = {"id":index,"mutants":[i]}
-                single_mut_idx.append(i)
-            else:
-                single_mutations[mutation]["mutants"].append(i)
+    # Retrieve the indices of all the mutants with single mutations 
+    # and store the id of correspoding single mutations                       
+    single_mutants_idx = np.asarray((np.sum(X,axis = 1) == 1)).ravel()
+    single_mutation_idx = np.asarray(np.sum(X[single_mutants_idx,:],axis=0) == 1).ravel()
 
 
     # train the classifer using full data set
+    print "Training the classifier..."
+    t1 = time()
     clf = RandomForestClassifier(min_samples_split=20,n_estimators=30)
     clf.fit(X,y_bin)
+    print "Time taken: %.2f s\n"%(time()-t1)
 
     # predict the category for all possible single mutations available in the dataset
-    pos_mutations = []
-    neg_mutations = []
-    count = 0
-    for i in clf.feature_importances_.argsort()[::-1]:
-        if col_names[i] not in single_mutations:
-            occurence = X[:,i].sum()
-            #med_brigtness = np.median(y[X[:,i]>0])
-            mutation_vector = np.zeros((1,X.shape[1]))
-            mutation_vector[0,i] = 1
-            h = clf.predict_proba(mutation_vector)
-            if h[0][1] > 0.9:
-                pos_mutations.append((col_names[i],h[0][1],occurence,count))
-
-            if h[0][0] > 0.9:
-                neg_mutations.append((col_names[i],h[0][0],occurence,count))
-        
-        count += 1
+    print "Predicting single mutations..."
+    t1 = time()
+    S = sparse.diags(np.ones(X.shape[1]))
+    ys = clf.predict(S)
+    hs = clf.predict_proba(S)
+    del S
+    pos_idx = (hs[:,1]>0.9) & ~single_mutation_idx
+    neg_idx = (hs[:,0]>0.9) & ~single_mutation_idx
+    pos_mutations = zip([col_names[i] for i in pos_idx],hs[pos_idx][:,1],np.sum(X[:,pos_idx],axis = 0).tolist()[0])
+    neg_mutations = zip([col_names[i] for i in neg_idx],hs[neg_idx][:,0],np.sum(X[:,neg_idx],axis = 0).tolist()[0])
+    print "Time taken: %.2f s\n"%(time()-t1)
     
     # pos_mutaions and neg_mutations are list of tuples. Each tuple contains 4 values:
     #   - mutation name
     #   - prediction confidence of classifier
     #   - occurence of mutation in the dataset
-    #   - importance of mutation as feature for the classifier
         
     # sort the positive and negative single mutations
+    print "Sorting the mutation predictions..."
+    t1 = time()
     pos_mutations.sort(key=lambda x:x[2],reverse = True)
     neg_mutations.sort(key=lambda x:x[2],reverse = True)
+    print "Time taken: %.2f\n"%(time()-t1)
     
-    # Create a list of feature(mutation) importances according to classifier  
-    mutation_importances = [(col_names[i],clf.feature_importances_[i]) \
-                            for i in clf.feature_importances_.argsort()[::-1]]
+    # Create a list of feature(mutation) importances according to classifier
+    print "Extracting feature importances from classifier..."  
+    t1 = time()
+    order = clf.feature_importances_.argsort()[::-1]
+    mutation_importances = zip([col_names[i] for i in order],clf.feature_importances_[order])
+    del order
+    print "Time taken: %.2f\n"%(time()-t1)
     
-                            
+    print "Overall time taken: %.2f s\n"%(time()-t0)                      
     return pos_mutations,neg_mutations,mutation_importances
 
-MachineLearningPipeline()
+MachineLearningPipeline('amino_acid_genotypes_to_brightness.tsv')
