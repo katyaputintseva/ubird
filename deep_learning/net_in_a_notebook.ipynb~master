@@ -1,0 +1,346 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Once deleted, variables cannot be recovered. Proceed (y/[n])? y\n"
+     ]
+    }
+   ],
+   "source": [
+    "%reset"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import tensorflow as tf\n",
+    "import pandas as pd\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "input_file = '~/amino_acid_genotypes_to_brightness_reuse.tsv'\n",
+    "train_file = '~/amino_acid_genotypes_to_brightness.tsv'\n",
+    "model_file = '/Users/katya/net_1_1_3_iteration_07020.ckpt'\n",
+    "learning_rate = 0.1\n",
+    "batch_size = 628\n",
+    "optimizer_method = 'tf.train.AdagradOptimizer'\n",
+    "line = 'net_structure\\t1,tf.tanh\\t3,tf.tanh\\t1,tf.tanh'\n",
+    "net_structure = {}\n",
+    "counter = 1\n",
+    "for i in line.split('\\t')[1:]:\n",
+    "    net_structure['layer' + str(counter)] = i.split(',')\n",
+    "    counter += 1\n",
+    "    \n",
+    "cost_stats_file = '/Users/katya/Desktop/cost_stats.txt'"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "train_data = pd.read_table(train_file)\n",
+    "train_data.aaMutations = train_data.aaMutations.fillna('')\n",
+    "unique_mutations = set(':'.join(train_data.aaMutations).split(':'))\n",
+    "unique_mutations.remove('')\n",
+    "unique_mutations = sorted(list(unique_mutations))\n",
+    "\n",
+    "data = pd.read_table(input_file)\n",
+    "data.aaMutations = data.aaMutations.fillna('')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "import matplotlib\n",
+    "matplotlib.use('Agg')\n",
+    "import tensorflow as tf\n",
+    "import numpy as np\n",
+    "from matplotlib import pyplot as plt\n",
+    "from scipy.stats import gaussian_kde\n",
+    "\n",
+    "# Functions for plotting. The first is to actually plot, the second is to make the plot readable.\n",
+    "def density_plot(x, y):\n",
+    "    ''' x = observed, y = predicted '''\n",
+    "    x = x[(~np.isnan(x)) & (~np.isnan(y))]\n",
+    "    y = y[(~np.isnan(x)) & (~np.isnan(y))]\n",
+    "\n",
+    "    # Calculate the point density\n",
+    "    xy = np.vstack([x, y])\n",
+    "    z = gaussian_kde(xy)(xy)\n",
+    "\n",
+    "    # Sort the points by density, so that the densest points are plotted last\n",
+    "    idx = z.argsort()\n",
+    "    x, y, z = x[idx], y[idx], z[idx]\n",
+    "\n",
+    "    fig, ax = plt.subplots()\n",
+    "    ax.scatter(x, y, c=z, s=10, edgecolor='')\n",
+    "\n",
+    "\n",
+    "def format_plot(ax, iteration_number, costs):\n",
+    "    plt.xlim(-1, 1)\n",
+    "    plt.ylim(-1, 1)\n",
+    "    plt.xlabel('Observed brightness')\n",
+    "    plt.ylabel('Predicted brightness')\n",
+    "    plt.title('Iteration %s: cost=%.7f' % (iteration_number, costs))\n",
+    "\n",
+    "    plt.tick_params(axis=\"both\", which=\"both\", bottom=\"off\", top=\"off\",\n",
+    "                    labelbottom=\"on\", left=\"off\", right=\"off\", labelleft=\"on\")\n",
+    "    ax.spines[\"top\"].set_visible(False)\n",
+    "    ax.spines[\"right\"].set_visible(False)\n",
+    "    ax.spines[\"bottom\"].set_visible(True)\n",
+    "    ax.spines[\"bottom\"].set_color('gray')\n",
+    "    ax.spines[\"left\"].set_visible(True)\n",
+    "    ax.spines[\"left\"].set_color('gray')\n",
+    "    ax.xaxis.grid(True)\n",
+    "    ax.yaxis.grid(True)\n",
+    "    return ax\n",
+    "\n",
+    "\n",
+    "# Function for shaping the data. It performs reshuffling of the data,\n",
+    "# brightness normalization, and extracts genotype and brightness to separate matrices.\n",
+    "def format_data(data, unique_mutations):\n",
+    "    # shuffling rows in the data df\n",
+    "    data = data.reindex(np.random.permutation(data.index))\n",
+    "    print('Normalizing data...')\n",
+    "    # formatting data for the nn input\n",
+    "    nn_genotypes_values = np.zeros((len(data), len(unique_mutations)))\n",
+    "    nn_brightness_values = data.medianBrightness.values\n",
+    "    for i in range(len(unique_mutations)):\n",
+    "        nn_genotypes_values[:, i] = data.aaMutations.str.contains(unique_mutations[i]).astype(np.float32)\n",
+    "\n",
+    "    nn_brightness_values = (nn_brightness_values - min(nn_brightness_values)) / max(\n",
+    "        nn_brightness_values - min(nn_brightness_values)) * 2 - 1\n",
+    "    return nn_genotypes_values, nn_brightness_values\n",
+    "\n",
+    "\n",
+    "# Function for generating batches from the data.\n",
+    "def get_batches(nn_genotypes_values, nn_brightness_values, batch_size, unique_mutations):\n",
+    "    nn_brightness_values_1 = nn_brightness_values\n",
+    "    print('Creating batches...')\n",
+    "    batches = []\n",
+    "    batch_number = int(nn_genotypes_values.shape[0] / batch_size)\n",
+    "    for i in range(batch_number):\n",
+    "        current_batch = nn_genotypes_values[batch_size * i:batch_size * (i + 1), :].reshape(batch_size, 1,\n",
+    "                                                                                            len(unique_mutations))\n",
+    "        current_batch_brightness = nn_brightness_values_1[batch_size * i:batch_size * (i + 1)].reshape(batch_size, 1, 1)\n",
+    "        batches.append((current_batch, current_batch_brightness))\n",
+    "    return batches\n",
+    "\n",
+    "\n",
+    "# Function for broadcasting a tensor (used before multiplication with weights).\n",
+    "def broadcast(tensor, batch_size):\n",
+    "    return tf.tile(tensor, (batch_size, 1, 1))\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "class Data():\n",
+    "    def __init__(self, input_file, batch_size):\n",
+    "        # type: (object, object) -> object\n",
+    "        # type: (object, object) -> object\n",
+    "        \"\"\"\n",
+    "        :param input_file: path to the input_file\n",
+    "        :param batch_size: size of the batches to use with this data\n",
+    "        \"\"\"\n",
+    "\n",
+    "        self.data = data\n",
+    "        self.unique_mutations = unique_mutations\n",
+    "        self.batch_size = batch_size\n",
+    "        self.input_file = input_file\n",
+    "        self.nn_genotypes_values, self.nn_brightness_values = format_data(data, unique_mutations)\n",
+    "        self.batches = get_batches(self.nn_genotypes_values, self.nn_brightness_values, batch_size, unique_mutations)\n",
+    "        self.batch_number = len(self.batches)\n",
+    "        self.to_plot_observed = self.nn_brightness_values[0:(self.batch_number * self.batch_size)]\n",
+    "        self.nn_genotypes = tf.placeholder(tf.float32, shape=[self.batch_size, 1, len(unique_mutations)])\n",
+    "        self.nn_brightness = tf.placeholder(tf.float32, shape=[self.batch_size, 1, 1])\n",
+    "\n",
+    "    def reshuffle(self):\n",
+    "        self.nn_genotypes_values, self.nn_brightness_values = format_data(self.data, self.unique_mutations)\n",
+    "        self.batches = get_batches(self.nn_genotypes_values, self.nn_brightness_values, self.batch_size, self.unique_mutations)\n",
+    "        self.to_plot_observed = self.nn_brightness_values[0:(self.batch_number * self.batch_size)]\n",
+    "\n",
+    "\n",
+    "# Neural network class. Extracts neural net structure from the parameter file.\n",
+    "# Contains all the details of the neural network to be used.\n",
+    "class TFNet(object):\n",
+    "    def __init__(self, net_structure, input_data, optimizer_method, learning_rate, batch_size, cost_stats_file):\n",
+    "        '''\n",
+    "            :param net_structure:\n",
+    "                                {'layer1':(3, tf.tanh()),\n",
+    "                                'layer2':((3, tf.tanh()),\n",
+    "                                'layer3':(1, tf.tanh())}\n",
+    "\n",
+    "            :return:\n",
+    "\n",
+    "            https://www.tensorflow.org/versions/r0.9/api_docs/python/nn.html#activation-functions\n",
+    "\n",
+    "            '''\n",
+    "\n",
+    "        self.number_of_layers = len(net_structure)\n",
+    "        self.structure = net_structure\n",
+    "\n",
+    "        self.neurons = {}\n",
+    "        self.weights = {}\n",
+    "        self.biases = {}\n",
+    "        self.input = {}\n",
+    "        self.output = {}\n",
+    "\n",
+    "        for i in range(self.number_of_layers):\n",
+    "            layer = 'layer' + str(i + 1)\n",
+    "            self.neurons[layer] = int(self.structure[layer][0])\n",
+    "            self.weights[layer] = tf.Variable(\n",
+    "                tf.random_normal([1, len(input_data.unique_mutations), self.neurons[layer]]),\n",
+    "                name=layer + '_weights')\n",
+    "            self.biases[layer] = tf.Variable(tf.random_normal([1, 1, self.neurons[layer]]), name=layer + '_biases')\n",
+    "            self.input[layer] = tf.add(\n",
+    "                tf.batch_matmul(input_data.nn_genotypes, broadcast(self.weights[layer], batch_size)),\n",
+    "                broadcast(self.biases[layer], batch_size))\n",
+    "            self.output[layer] = eval(self.structure[layer][1])(self.input[layer])\n",
+    "\n",
+    "        self.cost = tf.reduce_sum(tf.pow(self.output[layer] - input_data.nn_brightness, 2)) / batch_size\n",
+    "        self.optimizer = eval(optimizer_method)(learning_rate).minimize(self.cost)\n",
+    "\n",
+    "        self.init = tf.initialize_all_variables()\n",
+    "        self.saver = tf.train.Saver()\n",
+    "\n",
+    "        self.cost_stats_file = cost_stats_file\n",
+    "\n",
+    "    def __str__(self):\n",
+    "        print('Net structure:\\n')\n",
+    "        for i in range(self.number_of_layers):\n",
+    "            print('%s neurons in layer_' % (self.neurons['layer' + str(i + 1)]) + str(i + 1) + '\\n')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Normalizing data...\n",
+      "Creating batches...\n"
+     ]
+    }
+   ],
+   "source": [
+    "data = Data(input_file, batch_size)\n",
+    "net = TFNet(net_structure, data, optimizer_method, learning_rate, batch_size, cost_stats_file)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'layer1_weights:0'"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "net.weights['layer1'].name"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "with tf.Session() as sess:\n",
+    "    sess.run(net.init)\n",
+    "    net.saver.restore(sess, model_file)\n",
+    "    print(session.run(tf.all_variables()))\n",
+    "    for batch in data.batches:\n",
+    "        to_plot_predicted = np.zeros(data.batch_number * batch_size)\n",
+    "        for index, (batch) in enumerate(data.batches):\n",
+    "            l3_value = sess.run([net.output['layer3']],\n",
+    "                                feed_dict={data.nn_genotypes: batch})\n",
+    "            to_plot_predicted[(index * batch_size):((index + 1) * batch_size)] = l3_value"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "anaconda-cloud": {},
+  "kernelspec": {
+   "display_name": "Python [conda env:p3]",
+   "language": "python",
+   "name": "conda-env-p3-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
