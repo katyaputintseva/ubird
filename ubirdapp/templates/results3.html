@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Ubird-Results</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <!--link href="/static/css/scrolling-nav.css" rel="stylesheet"-->
+    <link href="/static/css/scrolling-nav.css" rel="stylesheet">
+    <link href="/static/custom_style.css" rel="stylesheet">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]-->
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <!--[endif]-->
+
+    <!-- B O K E H     S C R I P T S -->
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.css" type="text/css"/>
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.css" type="text/css"/>
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.js"></script>
+    {{bardist_scr | safe}}
+    {{mutdist_scr | safe}}
+    {{aminos_scr | safe}}
+    {{uniqmut_scr | safe}}
+    {{violin_scr | safe}}
+   <!-- B O K E H     Table Style -->
+   <style> 
+      .bk-root .bk-slick-header-column.bk-ui-state-default {
+      height: 25px!important;
+      }
+      .bk-root .bk-slick-header-column.bk-ui-state-default:first-child { width: 40px!important; }
+  </style>
+
+</head>
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+<!-- Navigation -->
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top">Ubird</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
+                    <li class="hidden">
+                        <a class="page-scroll" href="#page-top"></a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#about">About Ubird</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#services">Data Analysis</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#upload">File Upload</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#contact">Contact</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#contact">Results</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+<!--/ Navigation -->
+
+<!-- Master head -->
+<div id="masthead">
+  <div class="container">
+      <div class="row">
+        <div class="col-md-7">
+          <h1>Results
+            <p class="lead">With Plots and tables</p>
+          </h1>
+        </div>
+        <div class="col-md-5">
+            <div class="well well-lg">
+              <div class="row">
+                <div class="col-sm-6">
+        	      	<img src="//placehold.it/180x100" class="img-responsive">
+                </div>
+                <div class="col-sm-6">
+	              	Some text here
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+  </div><!--/container-->
+</div><!--/masthead-->
+
+
+
+<!--main-->
+<div class="container">
+	<div class="row">
+      <!--left-->
+      <div class="col-md-3" id="leftCol">
+        <ul class="nav nav-stacked" id="sidebar">
+          <li><a href="#sec0">Barcode Distribution</a></li>
+          <li><a href="#sec1">Mutation Distribution</a></li>
+          <li><a href="#sec2">Aminoacid switch</a></li>
+          <li><a href="#sec3">Unique Mutants</a></li>
+          <li><a href="#sec4">Violin Plot</a></li>
+        </ul>
+      </div><!--/left-->
+
+
+      <div class="col-md-9"><!--right-->
+        <h2 id="sec0">Barcode Distribution</h2>
+            <p>
+            At Bootply we like to build simple Bootstrap templates that utilize the code Bootstap CSS without a lot of customization. Sure you can
+            find a lot of Bootstrap themes and inspiration, but these templates tend to be heavy on customization.</p>
+
+
+            <div class="bk-root">
+                {{bardist_div | safe}}
+            </div>
+            <hr>
+
+        <h2 id="sec1">Mutation distribution</h2>
+            <p>
+                 Rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae
+                 dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut.</p>
+
+            <div class="bk-root">
+                {{mutdist_div | safe}}
+            </div>
+            <hr>
+
+
+        <h2 id="sec2">Aminoacid switches</h2>
+            <p>
+              Rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae
+              dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia cor magni dolores
+              eos qui ratione voluptatem sequi nesciunt.
+            </p>
+
+            <div class="bk-root">
+                {{aminos_div | safe}}
+            </div>
+        <hr>
+
+        <h2 id="sec3">Unique mutations </h2>
+
+        <p>
+          Fos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit,
+          sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+
+          <div class="bk-root">
+              {{uniqmut_div | safe}}
+          </div>
+        <hr>
+
+        <h2 id="sec4">Violin</h2>
+        <p>
+          Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,
+          totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae
+          dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia cor magni dolores
+          eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit,
+          sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+          Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut.</p>
+
+          <div class="bk-root">
+              {{violin_div | safe}}
+          </div>
+
+        
+
+        <h2 id="sec4">Table</h2>
+        <p>
+          Download the results!</p>
+
+          <div class="bk-root">
+              {{table_div | safe}}
+          </div>
+
+        <hr>
+
+        </div><!--/right-->
+  	</div><!--/row-->
+</div><!--/container-->
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery.js"></script>
+    <!-- Bokeh DataTable -->
+    {{table_scr | safe}}
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- Scrolling Nav JavaScript -->
+    <script src="/static/js/jquery.easing.min.js"></script>
+    <script src="/static/js/scrolling-nav.js"></script>
+    <!--Side Bar JS-->
+    <script  src="/static/js/sidebar.js"></script>
+
+
+</body>
+</html>
