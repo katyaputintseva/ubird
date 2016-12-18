@@ -18,6 +18,7 @@
     <!--link href="/static/css/scrolling-nav.css" rel="stylesheet"-->
     <link href="/static/css/scrolling-nav.css" rel="stylesheet">
     <link href="/static/custom_style.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-3-vert-offset-shim.css" rel="stylesheet">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]-->
@@ -64,22 +65,22 @@
                 <ul class="nav navbar-nav">
                     <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
                     <li class="hidden">
-                        <a class="page-scroll" href="#page-top"></a>
+                        <a class="page-scroll" href="/#page-top"></a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#about">About Ubird</a>
+                        <a class="page-scroll" href="/#about">About Ubird</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#services">Data Analysis</a>
+                        <a class="page-scroll" href="/#services">Data Analysis</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#upload">File Upload</a>
+                        <a class="page-scroll" href="/#upload">File Upload</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#contact">Contact</a>
+                        <a class="page-scroll" href="/#contact">Contact</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#contact">Results</a>
+                        <a class="page-scroll" href="/results">Results</a>
                     </li>
                 </ul>
             </div>
@@ -93,22 +94,13 @@
 <div id="masthead">
   <div class="container">
       <div class="row">
-        <div class="col-md-7">
+        <div class="col-md-3">
           <h1>Results
             <p class="lead">With Plots and tables</p>
           </h1>
         </div>
-        <div class="col-md-5">
-            <div class="well well-lg">
-              <div class="row">
-                <div class="col-sm-6">
-        	      	<img src="//placehold.it/180x100" class="img-responsive">
-                </div>
-                <div class="col-sm-6">
-	              	Some text here
-                </div>
-              </div>
-            </div>
+        <div class="col-md-9 vert-offset-top-9 ">
+        <p>Here we can put some text explaining what the hell is going on in this page</p>
         </div>
       </div>
   </div><!--/container-->
@@ -127,6 +119,7 @@
           <li><a href="#sec2">Aminoacid switch</a></li>
           <li><a href="#sec3">Unique Mutants</a></li>
           <li><a href="#sec4">Violin Plot</a></li>
+            <li><a href="#sec5">Featured mutations</a></li>
         </ul>
       </div><!--/left-->
 
@@ -192,9 +185,9 @@
 
         
 
-        <h2 id="sec4">Table</h2>
+        <h2 id="sec5">Featured Mutations</h2>
         <p>
-          Download the results!</p>
+          Results of the random forest algorithm showing the mutations that have an stronger effect over the phenotype </p>
 
           <div class="bk-root">
               {{table_div | safe}}
