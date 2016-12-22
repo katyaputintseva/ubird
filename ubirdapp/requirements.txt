@@ -1,0 +1,10 @@
+Flask
+werkzeug
+os
+pandas
+numpy
+seaborn
+matplotlib
+bokeh
+sklearn
+scipy
